@@ -25,10 +25,13 @@ class App < Sinatra::Base
     #   body: 'Incoming call from: ' + from
     # )
 
-    # call = client.calls.create(
-    #  from: '+14402021404',
-    #  to: '+19175731568'
-    # )
+    call = client.calls.create(
+     from: '+14402021404',
+     to: '+19175731568',
+     url: '/start_conference'
+    )
+
+    
 
     Twilio::TwiML::Response.new do |r|
       # r.Dial '+19175731568'
@@ -38,6 +41,15 @@ class App < Sinatra::Base
       r.Say 'Goodbye'
     end.text
 
+  end
+
+  get '/start_conference?' do
+    Twilio::TwiML::Response.new do |r|
+      r.Dial do |d|
+        r.Conference 'Batphone'
+      end
+      r.Say 'Goodbye'
+    end.text
   end
 
   post '/sms?' do
