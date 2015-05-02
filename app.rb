@@ -85,6 +85,8 @@ class App < Sinatra::Base
         num_outside_participants = num_outside_participants + 1 
       end
     end
+
+    return num_outside_participants
   end
 
   def text_main_members(caller, client)
