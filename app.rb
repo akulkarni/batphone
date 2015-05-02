@@ -15,6 +15,16 @@ class App < Sinatra::Base
   	'Batmaaan!'
   end
 
+  get '/test' do
+     client = get_twilio_client
+     client.account.conferences.list({
+	  :status => "in-progess",
+      :friendly_name => get_conference_id}).each do |conference|
+     	puts conference
+     end
+     return 200
+  end
+
   post '/call?' do
     client = get_twilio_client
     caller = params[:From]
@@ -36,16 +46,24 @@ class App < Sinatra::Base
       end
     end
 
-    # Only let one caller who is not main member join
-    num_outside_participants = 0
-    client.account.conferences.get(get_conference_id).participants.list.each do |participant|
-      num_outside_participants = num_outside_participants + 1 if !get_main_members.include?(participant)
-    end
+    # If a call is in progress, only let one caller who is not main member join
+    active_calls = client.account.conferences.list({
+	  :status => "in-progress",
+      :friendly_name => get_conference_id})
+    
+    if active_calls.size > 0
+      conference_sid = active_calls.first.sid
 
-    if num_outside_participants < 2
-      get_start_conference_xml
-    else 
-      get_try_again_xml
+      num_outside_participants = 0
+      client.account.conferences.get(conference_sid).participants.list.each do |participant|
+        num_outside_participants = num_outside_participants + 1 if !get_main_members.include?(participant)
+      end
+
+      if num_outside_participants < 2
+        get_start_conference_xml
+      else 
+        get_try_again_xml
+      end
     end
 
   end
