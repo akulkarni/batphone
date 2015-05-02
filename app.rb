@@ -18,16 +18,16 @@ class App < Sinatra::Base
   post '/call?' do
     client = get_twilio_client
     caller = params[:From]
-    active_calls = get_active_calls(client)
+    active_conferences = get_active_conferences(client)
     
     text_main_members(caller, client) unless get_main_members.include?(caller)
 
-    if active_calls.size == 0
+    if active_conferences.size == 0
       call_main_members(client) unless get_main_members.include?(caller)
       get_start_conference_xml
 
     else
-      conference_sid = active_calls.first.conference_sid
+      conference_sid = active_conferences.first.sid
       num_outside_participants = get_number_outside_participants(conference_sid, client)
 
       if num_outside_participants < 2
@@ -66,7 +66,7 @@ class App < Sinatra::Base
   end
 
   ### internals
-  def get_active_calls(client)
+  def get_active_conferences(client)
     return client.account.conferences.list({
 	  :status => "in-progress",
       :friendly_name => get_conference_id})
