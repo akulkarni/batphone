@@ -8,10 +8,8 @@ module HotlineConfig
 
   def get_main_members
   	return [
-  		'+19175731568', # Ajay
-  		'+19173285297', # Mike mobile
-  		'+16098488848', # Mike GV
-  		'+16092589179'  # Mike office
+  		'+19175731568', # Ajay mobile
+  		'+19173285297'  # Mike mobile
   	]
   end
 
