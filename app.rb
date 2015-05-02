@@ -115,9 +115,7 @@ class App < Sinatra::Base
 
   def get_try_again_xml
   	Twilio::TwiML::Response.new do |r|
-  	  r.Say :voice => 'alice' do |s|
-        "Sorry, we are currently on a call. We'll call you back."
-      end
+  	  r.Say "Sorry, we are currently on a call. We'll call you back."
     end.text
   end
 
