@@ -19,11 +19,11 @@ class App < Sinatra::Base
 
     client = get_twilio_client
 
-    client.messages.create(
-      from: '+14402021404',
-      to: '+19175731568',
-      body: 'Incoming call from: ' + from
-    )
+    # client.messages.create(
+    #   from: '+14402021404',
+    #   to: '+19175731568',
+    #   body: 'Incoming call from: ' + from
+    # )
 
     # call = client.calls.create(
     #  from: '+14402021404',
@@ -31,14 +31,26 @@ class App < Sinatra::Base
     # )
 
     Twilio::TwiML::Response.new do |r|
-      r.Dial '+19175731568' ### Connect the caller to Koko, or your cell
-      r.Say 'The call failed or the remote party hung up. Goodbye.'
+      # r.Dial '+19175731568'
+      r.Dial do |d|
+        r.Conference 'Batphone'
+      r.Say 'Goodbye'
     end.text
 
   end
 
   post '/sms?' do
     logger.info params
+
+    from = params[:From]
+    body = params[:Body]
+
+    client = get_twilio_client
+    client.messages.create(
+      from: '+14402021404',
+      to: '+19175731568',
+      body: 'from: ' + from + "\n\n" + body
+    )
   end
 
 
