@@ -69,6 +69,13 @@ class App < Sinatra::Base
       if num_outside_participants < 2
         get_start_conference_xml
       else 
+        get_main_members.each do |phone_number|
+		  client.messages.create(
+            from: get_main_number,
+            to: phone_number,
+            body: 'Missed call from: ' + caller
+          )
+        end
         get_try_again_xml
       end
     end
@@ -115,7 +122,7 @@ class App < Sinatra::Base
 
   def get_try_again_xml
   	Twilio::TwiML::Response.new do |r|
-  	  r.Say "Sorry, we are currently on a call. We'll call you back."
+  	  r.Say "Sorry, we are currently on a call. We'll call you right back."
     end.text
   end
 
