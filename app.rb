@@ -30,7 +30,7 @@ class App < Sinatra::Base
       conference_sid = active_conferences.first.sid
       num_outside_participants = get_number_outside_participants(conference_sid, client)
 
-      if num_outside_participants < -1
+      if num_outside_participants == 0
         get_start_conference_xml
       else 
         text_missed_call_main_members(caller, client)
@@ -79,13 +79,9 @@ class App < Sinatra::Base
 
     participants.list.each do |participant|
       participant_number = client.account.calls.get(participant.call_sid).from
-      puts "participant number: " + participant_number
 
       if !get_main_members.include?(participant_number)
-      	puts "external number: " + participant_number
         num_outside_participants = num_outside_participants + 1 
-      else
-      	puts "internal number: " + participant_number
       end
     end
 

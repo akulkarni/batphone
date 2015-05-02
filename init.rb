@@ -7,11 +7,16 @@ module HotlineConfig
   end
 
   def get_main_members
-  	return ['+19175731568']
+  	return [
+  		'+19175731568', # Ajay
+  		'+19173285297', # Mike mobile
+  		'+16098488848', # Mike GV
+  		'+16092589179'  # Mike office
+  	]
   end
 
   def get_conference_id
-    return 'Batphone'
+    return 'Hotline'
   end
   
   def get_host
