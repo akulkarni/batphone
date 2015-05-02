@@ -50,6 +50,8 @@ class App < Sinatra::Base
     active_calls = client.account.conferences.list({
 	  :status => "in-progress",
       :friendly_name => get_conference_id})
+
+    puts active_calls.size
     
     if active_calls.size > 0
       conference_sid = active_calls.first.sid
