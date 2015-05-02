@@ -14,6 +14,8 @@ class App < Sinatra::Base
   post '/call?' do
     client = get_twilio_client
 
+    from = params[:From]
+
     client.messages.create(
        from: '+14402021404',
        to: '+19175731568',
