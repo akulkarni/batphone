@@ -43,7 +43,7 @@ class App < Sinatra::Base
 
   end
 
-  get '/start_conference?' do
+  post '/start_conference?' do
     Twilio::TwiML::Response.new do |r|
       r.Dial do |d|
         r.Conference 'Batphone'
