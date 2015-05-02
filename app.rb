@@ -18,55 +18,23 @@ class App < Sinatra::Base
   post '/call?' do
     client = get_twilio_client
     caller = params[:From]
-
-    active_calls = client.account.conferences.list({
-	  :status => "in-progress",
-      :friendly_name => get_conference_id})
+    active_calls = get_active_calls
     
-    if active_calls.size == 0
-      if !get_main_members.include?(caller)
-        get_main_members.each do |phone_number|
-          client.messages.create(
-            from: get_main_number,
-            to: phone_number,
-            body: 'Incoming call from: ' + caller
-          )
+    text_main_members unless get_main_members.include?(caller)
 
-          client.calls.create(
-            from: get_main_number,
-            to: phone_number,
-            url: get_host +  '/start_conference'
-          )
-        end
-      end
+    if active_calls.size == 0
+      call_main_members unless get_main_members.include?(caller)
       get_start_conference_xml
 
     else
-      conference_sid = active_calls.first.sid
-      num_outside_participants = 0
-
-      client.account.conferences.get(conference_sid).participants.list.each do |participant|
-      	puts participant
-      	participant_number = client.account.calls.get(participant.call_sid).from
-
-      	if !get_main_members.include?(participant_number)
-          num_outside_participants = num_outside_participants + 1 
-        end
-      end
+      num_outside_participants = get_number_outside_participants
 
       if num_outside_participants < 2
         get_start_conference_xml
       else 
-        get_main_members.each do |phone_number|
-		  client.messages.create(
-            from: get_main_number,
-            to: phone_number,
-            body: 'Missed call from: ' + caller
-          )
-        end
+        text_missed_call_main_members
         get_try_again_xml
       end
-
     end
   end
 
@@ -97,6 +65,56 @@ class App < Sinatra::Base
   end
 
   ### internals
+  def get_active_calls
+    return client.account.conferences.list({
+	  :status => "in-progress",
+      :friendly_name => get_conference_id})
+  end
+
+  def get_number_outside_participants(conference_sid)
+    num_outside_participants = 0
+    conference = client.account.conferences.get(conference_sid)
+    participants = conference.participants
+
+    participants.list.each do |participant|
+      participant_number = client.account.calls.get(participant.call_sid).from
+      puts participant_number
+
+      if !get_main_members.include?(participant_number)
+        num_outside_participants = num_outside_participants + 1 
+      end
+    end
+  end
+
+  def text_main_members(caller)
+    get_main_members.each do |phone_number|
+      client.messages.create(
+        from: get_main_number,
+        to: phone_number,
+        body: 'Incoming call from: ' + caller
+      )
+    end
+  end
+
+  def text_missed_call_main_members(caller)
+    get_main_members.each do |phone_number|
+      client.messages.create(
+        from: get_main_number,
+        to: phone_number,
+        body: 'Missed call from: ' + caller
+      )
+    end
+  end
+
+  def call_main_members
+  	get_main_members.each do |phone_number|
+      client.calls.create(
+        from: get_main_number,
+        to: phone_number,
+        url: get_host +  '/start_conference'
+      )
+    end
+  end
 
   def get_start_conference_xml
     Twilio::TwiML::Response.new do |r|
