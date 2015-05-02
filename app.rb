@@ -2,6 +2,12 @@
 require 'sinatra'
 require 'twilio-ruby'
 
+## TODO
+# If a conference is already in progress, should you let caller in?
+# PRO: If someone drops out, can easily rejoin
+# CON: New caller will be able to listen in -- can't give same phone number to multiple people
+### ONLY LET SOMEONE (NOT EXISTING PART) TO JOIN IF THEY WERE LAST PERSON 
+
 class App < Sinatra::Base
   configure :production, :development do
     enable :logging
@@ -17,8 +23,8 @@ class App < Sinatra::Base
 
     # only batphone participants if caller is not existing participant
     # allows batphone participant to join missed conference without calling everyone else
-    unless get_conference_participants.include?(caller)
-      get_conference_participants.each do |phone_number|
+    unless get_batphone_members.include?(caller)
+      get_batphone_members.each do |phone_number|
         client.messages.create(
           from: get_main_number,
           to: phone_number,
@@ -46,14 +52,14 @@ class App < Sinatra::Base
     message = params[:Body]
     client = get_twilio_client
 
-    if get_conference_participants.include?(sender)
+    if get_batphone_members.include?(sender)
       client.messages.create(
         from: get_main_number,
         to: sender,
         body: "You can't reply to a message from this number."
       )
     else 
-      get_conference_participants.each do |phone_number|
+      get_batphone_members.each do |phone_number|
         client.messages.create(
           from: get_main_number,
           to: phone_number,
@@ -79,8 +85,8 @@ class App < Sinatra::Base
   	return '+14402021404'
   end
 
-  def get_conference_participants
-  	return ['+19175731568']
+  def get_batphone_members
+  	return ['+19175731568', '+19735680605']
   end
 
   def get_twilio_client
