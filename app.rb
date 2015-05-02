@@ -80,7 +80,7 @@ class App < Sinatra::Base
   end
 
   def get_conference_participants
-  	return ['+19175731568', '+14069625291']
+  	return ['+19175731568']
   end
 
   def get_twilio_client
