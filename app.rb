@@ -8,33 +8,33 @@ class App < Sinatra::Base
   end
 
   get '/' do
-  	'Bat man!'
+  	'Batmaaan!'
   end
 
   post '/call?' do
     client = get_twilio_client
+    caller = params[:From]
 
-    from = params[:From]
+    # only batphone participants if caller is not existing participant
+    # allows batphone participant to join missed conference without calling everyone else
+    unless get_conference_participants.include?(caller)
+      get_conference_participants.each do |phone_number|
+        client.messages.create(
+          from: get_main_number,
+          to: phone_number,
+          body: 'Incoming call from: ' + caller
+        )
 
-    client.messages.create(
-       from: '+14402021404',
-       to: '+19175731568',
-       body: 'Incoming call from: ' + from
-    )
+        client.calls.create(
+          from: get_main_number,
+          to: phone_number,
+          url: 'https://bat-phone-440.herokuapp.com/start_conference'
+        )
+      end
+    end
 
-    call = client.calls.create(
-     from: '+14402021404',
-     to: '+19175731568',
-     url: 'https://bat-phone-440.herokuapp.com/start_conference'
-    )
-
-#    Twilio::TwiML::Response.new do |r|
-#      r.Dial do |d|
-#        r.Conference 'Batphone'
-#      end
-#      r.Say 'Goodbye'
-#    end.text
     get_start_conference_xml
+
   end
 
   post '/start_conference?' do
@@ -42,23 +42,34 @@ class App < Sinatra::Base
   end
 
   post '/sms?' do
-    logger.info params
-
-    from = params[:From]
-    body = params[:Body]
-
+    sender = params[:From]
+    message = params[:Body]
     client = get_twilio_client
-    client.messages.create(
-      from: '+14402021404',
-      to: '+19175731568',
-      body: 'from: ' + from + "\n\n" + body
-    )
+
+    if get_conference_participants.include?(sender)
+      client.messages.create(
+        from: get_main_number,
+        to: sender,
+        body: "You can't reply to a message from this number."
+      )
+    else 
+      get_conference_participants.each do |phone_number|
+        client.messages.create(
+          from: get_main_number,
+          to: phone_number,
+          body: 'from: ' + sender + "\n\n" + message
+        )
+      end
+    end
   end
+
+
+  ### internals
 
   def get_start_conference_xml
     Twilio::TwiML::Response.new do |r|
       r.Dial do |d|
-        r.Conference :waitUrl => "http://twimlets.com/holdmusic?Bucket=com.twilio.music.ambient" do |c| 
+      	r.Conference do |c|
           'Batphone'
         end
       end
@@ -66,9 +77,18 @@ class App < Sinatra::Base
     end.text    
   end
 
+  def get_main_number
+  	return '+14402021404'
+  end
+
+  def get_conference_participants
+  	return ['+19175731568', '+14069625291']
+  end
+
   def get_twilio_client
     account_sid = "AC2c0c745ec4d44b2e8c34ce702d81dadd"
     auth_token = "4c8d9d87c5e4b1f0634a6a27e9bc9300"
     return Twilio::REST::Client.new account_sid, auth_token
   end
+  
 end 
