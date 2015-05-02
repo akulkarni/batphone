@@ -3,9 +3,10 @@ require 'sinatra'
 require 'twilio-ruby'
 
 require_relative 'init'
-helpers BatConfig
 
 class App < Sinatra::Base
+  helpers BatConfig
+
   configure :production, :development do
     enable :logging
   end
