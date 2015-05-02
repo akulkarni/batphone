@@ -5,24 +5,14 @@ require 'twilio-ruby'
 require_relative 'init'
 
 class App < Sinatra::Base
-  helpers BatConfig
+  helpers HotlineConfig
 
   configure :production, :development do
     enable :logging
   end
 
   get '/' do
-  	'Batmaaan!'
-  end
-
-  get '/test' do
-     client = get_twilio_client
-     client.account.conferences.list({
-	  :status => "in-progress",
-      :friendly_name => get_conference_id}).each do |conference|
-     	puts conference
-     end
-     return 200
+  	return 200
   end
 
   post '/call?' do
@@ -34,7 +24,7 @@ class App < Sinatra::Base
       :friendly_name => get_conference_id})
     
     if active_calls.size == 0
-      unless get_main_members.include?(caller)
+      if !get_main_members.include?(caller)
         get_main_members.each do |phone_number|
           client.messages.create(
             from: get_main_number,
@@ -49,22 +39,17 @@ class App < Sinatra::Base
           )
         end
       end
-      
       get_start_conference_xml
 
     else
       conference_sid = active_calls.first.sid
-
-      logger.info conference_sid
-
       num_outside_participants = 0
-      client.account.conferences.get(conference_sid).participants.list.each do |participant|
-      	logger.info "in participant loop"
-      	logger.info participant
-        num_outside_participants = num_outside_participants + 1 if !get_main_members.include?(participant)
-      end
 
-      logger.info num_outside_participants
+      client.account.conferences.get(conference_sid).participants.list.each do |participant|
+      	if !get_main_members.include?(participant)
+          num_outside_participants = num_outside_participants + 1 
+        end
+      end
 
       if num_outside_participants < 2
         get_start_conference_xml
@@ -78,12 +63,8 @@ class App < Sinatra::Base
         end
         get_try_again_xml
       end
+
     end
-
-  end
-
-  post '/start_conference?' do
-  	get_start_conference_xml
   end
 
   post '/sms?' do
@@ -108,6 +89,9 @@ class App < Sinatra::Base
     end
   end
 
+  post '/start_conference?' do
+  	get_start_conference_xml
+  end
 
   ### internals
 

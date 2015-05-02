@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-module BatConfig
+module HotlineConfig
 
   def get_main_number
   	return '+14402021404'
