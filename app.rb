@@ -29,31 +29,30 @@ class App < Sinatra::Base
     client = get_twilio_client
     caller = params[:From]
 
-    # Only send notification message if caller is not main member
-    unless get_main_members.include?(caller)
-      get_main_members.each do |phone_number|
-        client.messages.create(
-          from: get_main_number,
-          to: phone_number,
-          body: 'Incoming call from: ' + caller
-        )
-
-        client.calls.create(
-          from: get_main_number,
-          to: phone_number,
-          url: get_host +  '/start_conference'
-        )
-      end
-    end
-
-    # If a call is in progress, only let one caller who is not main member join
     active_calls = client.account.conferences.list({
 	  :status => "in-progress",
       :friendly_name => get_conference_id})
     
-    logger.info "active_calls: " + active_calls
+    if active_calls.size == 0
+      unless get_main_members.include?(caller)
+        get_main_members.each do |phone_number|
+          client.messages.create(
+            from: get_main_number,
+            to: phone_number,
+            body: 'Incoming call from: ' + caller
+          )
 
-    if active_calls.nil? or active_calls.size > 0
+          client.calls.create(
+            from: get_main_number,
+            to: phone_number,
+            url: get_host +  '/start_conference'
+          )
+        end
+      end
+      
+      get_start_conference_xml
+
+    else
       conference_sid = active_calls.first.sid
 
       num_outside_participants = 0
