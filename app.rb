@@ -15,11 +15,11 @@ class App < Sinatra::Base
   end
 
   post '/call?' do
-    puts params
+    logger.info params
   end
 
   post '/sms?' do
-    puts params
+    logger.info params
   end
 
 end 
