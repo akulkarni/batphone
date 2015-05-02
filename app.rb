@@ -18,7 +18,7 @@ class App < Sinatra::Base
   post '/call?' do
     client = get_twilio_client
     caller = params[:From]
-    active_calls = get_active_calls
+    active_calls = get_active_calls(client)
     
     text_main_members(caller, client) unless get_main_members.include?(caller)
 
