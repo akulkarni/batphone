@@ -12,18 +12,13 @@ class App < Sinatra::Base
   end
 
   post '/call?' do
-    logger.info params
-
-    from = params[:From]
-    puts from
-
     client = get_twilio_client
 
-    # client.messages.create(
-    #   from: '+14402021404',
-    #   to: '+19175731568',
-    #   body: 'Incoming call from: ' + from
-    # )
+    client.messages.create(
+       from: '+14402021404',
+       to: '+19175731568',
+       body: 'Incoming call from: ' + from
+    )
 
     call = client.calls.create(
      from: '+14402021404',
@@ -31,25 +26,17 @@ class App < Sinatra::Base
      url: 'https://bat-phone-440.herokuapp.com/start_conference'
     )
 
-    
-
-    Twilio::TwiML::Response.new do |r|
-      # r.Dial '+19175731568'
-      r.Dial do |d|
-        r.Conference 'Batphone'
-      end
-      r.Say 'Goodbye'
-    end.text
-
+#    Twilio::TwiML::Response.new do |r|
+#      r.Dial do |d|
+#        r.Conference 'Batphone'
+#      end
+#      r.Say 'Goodbye'
+#    end.text
+    get_start_conference_xml
   end
 
   post '/start_conference?' do
-    Twilio::TwiML::Response.new do |r|
-      r.Dial do |d|
-        r.Conference 'Batphone'
-      end
-      r.Say 'Goodbye'
-    end.text
+  	get_start_conference_xml
   end
 
   post '/sms?' do
@@ -66,6 +53,16 @@ class App < Sinatra::Base
     )
   end
 
+  def get_start_conference_xml
+    Twilio::TwiML::Response.new do |r|
+      r.Dial do |d|
+        r.Conference :waitUrl => "http://twimlets.com/holdmusic?Bucket=com.twilio.music.ambient" do |c| 
+          'Batphone'
+        end
+      end
+      r.Say 'Goodbye'
+    end.text    
+  end
 
   def get_twilio_client
     account_sid = "AC2c0c745ec4d44b2e8c34ce702d81dadd"
