@@ -20,19 +20,20 @@ class App < Sinatra::Base
     caller = params[:From]
     active_calls = get_active_calls
     
-    text_main_members unless get_main_members.include?(caller)
+    text_main_members(caller, client) unless get_main_members.include?(caller)
 
     if active_calls.size == 0
-      call_main_members unless get_main_members.include?(caller)
+      call_main_members(client) unless get_main_members.include?(caller)
       get_start_conference_xml
 
     else
-      num_outside_participants = get_number_outside_participants
+      conference_sid = active_calls.first.conference_sid
+      num_outside_participants = get_number_outside_participants(conference_sid, client)
 
       if num_outside_participants < 2
         get_start_conference_xml
       else 
-        text_missed_call_main_members
+        text_missed_call_main_members(caller, client)
         get_try_again_xml
       end
     end
@@ -65,13 +66,13 @@ class App < Sinatra::Base
   end
 
   ### internals
-  def get_active_calls
+  def get_active_calls(client)
     return client.account.conferences.list({
 	  :status => "in-progress",
       :friendly_name => get_conference_id})
   end
 
-  def get_number_outside_participants(conference_sid)
+  def get_number_outside_participants(conference_sid, client)
     num_outside_participants = 0
     conference = client.account.conferences.get(conference_sid)
     participants = conference.participants
@@ -86,7 +87,7 @@ class App < Sinatra::Base
     end
   end
 
-  def text_main_members(caller)
+  def text_main_members(caller, client)
     get_main_members.each do |phone_number|
       client.messages.create(
         from: get_main_number,
@@ -96,7 +97,7 @@ class App < Sinatra::Base
     end
   end
 
-  def text_missed_call_main_members(caller)
+  def text_missed_call_main_members(caller, client)
     get_main_members.each do |phone_number|
       client.messages.create(
         from: get_main_number,
@@ -106,7 +107,7 @@ class App < Sinatra::Base
     end
   end
 
-  def call_main_members
+  def call_main_members(client)
   	get_main_members.each do |phone_number|
       client.calls.create(
         from: get_main_number,
