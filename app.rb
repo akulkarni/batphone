@@ -6,7 +6,8 @@ require 'twilio-ruby'
 # If a conference is already in progress, should you let caller in?
 # PRO: If someone drops out, can easily rejoin
 # CON: New caller will be able to listen in -- can't give same phone number to multiple people
-### ONLY LET SOMEONE (NOT EXISTING PART) TO JOIN IF THEY WERE LAST PERSON 
+### ONLY LET SOMEONE (NOT EXISTING PART) TO JOIN IF THEY WERE LAST PERSON OR IF PARTICIPANTS ONLY MEMBERS
+# IF ALREADY 3 MEMBERS, PLEASE CALL AGAIN LATER
 
 class App < Sinatra::Base
   configure :production, :development do
@@ -21,10 +22,9 @@ class App < Sinatra::Base
     client = get_twilio_client
     caller = params[:From]
 
-    # only batphone participants if caller is not existing participant
-    # allows batphone participant to join missed conference without calling everyone else
-    unless get_batphone_members.include?(caller)
-      get_batphone_members.each do |phone_number|
+    # Only send notification message if caller is not main member
+    unless get_main_members.include?(caller)
+      get_main_members.each do |phone_number|
         client.messages.create(
           from: get_main_number,
           to: phone_number,
@@ -34,12 +34,22 @@ class App < Sinatra::Base
         client.calls.create(
           from: get_main_number,
           to: phone_number,
-          url: 'https://bat-phone-440.herokuapp.com/start_conference'
+          url: get_host +  '/start_conference'
         )
       end
     end
 
-    get_start_conference_xml
+    # Only let one caller who is not main member join
+    num_outside_participants = 0
+    client.account.conferences.get(get_conference_id).participants.list.each do |participant|
+      num_outside_participants = num_outside_participants + 1 if !get_main_members.include?(participant)
+    end
+
+    if num_outside_participants < 2
+      get_start_conference_xml
+    else 
+      get_try_again_xml
+    end
 
   end
 
@@ -52,14 +62,14 @@ class App < Sinatra::Base
     message = params[:Body]
     client = get_twilio_client
 
-    if get_batphone_members.include?(sender)
+    if get_main_members.include?(sender)
       client.messages.create(
         from: get_main_number,
         to: sender,
         body: "You can't reply to a message from this number."
       )
     else 
-      get_batphone_members.each do |phone_number|
+      get_main_members.each do |phone_number|
         client.messages.create(
           from: get_main_number,
           to: phone_number,
@@ -75,18 +85,34 @@ class App < Sinatra::Base
   def get_start_conference_xml
     Twilio::TwiML::Response.new do |r|
       r.Dial do |d|
-      	r.Conference 'Batphone'
+      	r.Conference get_conference_id
       end
       r.Say 'Goodbye'
     end.text    
+  end
+
+  def get_try_again_xml
+  	Twilio::TwiML::Response.new do |r|
+  	  r.Say :voice => 'alice' do |s|
+        "Sorry, we are currently on a call. We'll call you back."
+      end
+    end
   end
 
   def get_main_number
   	return '+14402021404'
   end
 
-  def get_batphone_members
+  def get_main_members
   	return ['+19175731568', '+19735680605']
+  end
+
+  def get_conference_id
+    return 'Batphone'
+  end
+  
+  def get_host
+  	return 'https://bat-phone-440.herokuapp.com'
   end
 
   def get_twilio_client
