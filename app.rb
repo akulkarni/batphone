@@ -79,7 +79,7 @@ class App < Sinatra::Base
 
     participants.list.each do |participant|
       participant_number = client.account.calls.get(participant.call_sid).from
-      puts participant_number
+      puts "participant number: " + participant_number
 
       if !get_main_members.include?(participant_number)
         num_outside_participants = num_outside_participants + 1 
