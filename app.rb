@@ -28,7 +28,7 @@ class App < Sinatra::Base
     call = client.calls.create(
      from: '+14402021404',
      to: '+19175731568',
-     url: '/start_conference'
+     url: 'https://bat-phone-440.herokuapp.com/start_conference'
     )
 
     
