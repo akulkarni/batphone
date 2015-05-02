@@ -18,7 +18,7 @@ class App < Sinatra::Base
   get '/test' do
      client = get_twilio_client
      client.account.conferences.list({
-	  :status => "in-progess",
+	  :status => "in-progress",
       :friendly_name => get_conference_id}).each do |conference|
      	puts conference
      end
@@ -51,6 +51,8 @@ class App < Sinatra::Base
 	  :status => "in-progress",
       :friendly_name => get_conference_id})
     
+    logger.info "active_calls: " + active_calls
+
     if active_calls.nil? or active_calls.size > 0
       conference_sid = active_calls.first.sid
 
