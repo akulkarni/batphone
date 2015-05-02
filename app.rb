@@ -55,15 +55,16 @@ class App < Sinatra::Base
     else
       conference_sid = active_calls.first.sid
 
-      puts conference_sid
+      logger.info conference_sid
 
       num_outside_participants = 0
       client.account.conferences.get(conference_sid).participants.list.each do |participant|
-      	puts participant
+      	logger.info "in participant loop"
+      	logger.info participant
         num_outside_participants = num_outside_participants + 1 if !get_main_members.include?(participant)
       end
 
-      puts num_outside_participants
+      logger.info num_outside_participants
 
       if num_outside_participants < 2
         get_start_conference_xml
