@@ -23,7 +23,7 @@ class App < Sinatra::Base
     text_main_members(caller, client) unless get_main_members.include?(caller)
 
     if active_conferences.size == 0
-      call_main_members(client) unless get_main_members.include?(caller)
+      call_main_members(client, caller)
       get_start_conference_xml
 
     else
@@ -108,13 +108,15 @@ class App < Sinatra::Base
     end
   end
 
-  def call_main_members(client)
+  def call_main_members(client, caller)
   	get_main_members.each do |phone_number|
-      client.calls.create(
-        from: get_main_number,
-        to: phone_number,
-        url: get_host +  '/start_conference'
-      )
+  	  unless phone_number == caller
+        client.calls.create(
+          from: get_main_number,
+          to: phone_number,
+          url: get_host +  '/start_conference'
+        )
+      end
     end
   end
 
