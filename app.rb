@@ -34,6 +34,7 @@ class App < Sinatra::Base
       # r.Dial '+19175731568'
       r.Dial do |d|
         r.Conference 'Batphone'
+      end
       r.Say 'Goodbye'
     end.text
 
