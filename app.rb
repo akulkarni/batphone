@@ -69,7 +69,7 @@ class App < Sinatra::Base
   def get_start_conference_xml
     Twilio::TwiML::Response.new do |r|
       r.Dial do |d|
-      	d.Conference 'Batphone'
+      	r.Conference 'Batphone'
       end
       r.Say 'Goodbye'
     end.text    
