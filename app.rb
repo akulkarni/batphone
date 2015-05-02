@@ -69,9 +69,7 @@ class App < Sinatra::Base
   def get_start_conference_xml
     Twilio::TwiML::Response.new do |r|
       r.Dial do |d|
-      	r.Conference do |c|
-          'Batphone'
-        end
+      	d.Conference 'Batphone'
       end
       r.Say 'Goodbye'
     end.text    
@@ -90,5 +88,5 @@ class App < Sinatra::Base
     auth_token = "4c8d9d87c5e4b1f0634a6a27e9bc9300"
     return Twilio::REST::Client.new account_sid, auth_token
   end
-  
+
 end 
