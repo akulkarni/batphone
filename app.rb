@@ -27,7 +27,7 @@ class App < Sinatra::Base
 
       # Pause for repeated intervals waiting for others to join
       i = 0
-      while (i < 4)
+      while (i < 5)
         sleep(3)
         if active_conferences.size > 0
           i = 100
