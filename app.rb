@@ -28,14 +28,18 @@ class App < Sinatra::Base
       get_start_conference_xml
 
     else
-      conference_sid = active_conferences.first.sid
-      num_outside_participants = get_number_outside_participants(conference_sid, client)
-
-      if num_outside_participants == 0
+      if get_main_members.include?(caller)
         get_start_conference_xml
       else 
-        text_missed_call_main_members(caller, client)
-        get_try_again_xml
+        conference_sid = active_conferences.first.sid
+        num_outside_participants = get_number_outside_participants(conference_sid, client)
+
+        if num_outside_participants == 0
+          get_start_conference_xml
+        else 
+          text_missed_call_main_members(caller, client)
+          get_try_again_xml
+        end
       end
     end
   end
