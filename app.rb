@@ -25,9 +25,21 @@ class App < Sinatra::Base
     if active_conferences.size == 0
       call_main_members(client, caller)
 
-      sleep(30)
+      # Pause for 4 5-second intervals waiting for others to join
+      i = 0
+      while (i < 4)
+        sleep(5)
+        if active_conferences.size > 0
+          i = 100
+          get_start_conference_xml
+        else
+          i = i + 1
+        end
+      end
 
-      get_start_conference_xml
+      if i < 100
+        get_try_again_xml
+      end
 
     else
       conference_sid = active_conferences.first.sid
@@ -135,7 +147,7 @@ class App < Sinatra::Base
 
   def get_try_again_xml
   	Twilio::TwiML::Response.new do |r|
-  	  r.Say "Sorry, we are currently on a call. We'll call you right back."
+  	  r.Say "Sorry, we are currently unavailable. We'll call you right back."
     end.text
   end
 
