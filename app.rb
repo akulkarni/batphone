@@ -24,22 +24,8 @@ class App < Sinatra::Base
 
     if active_conferences.size == 0
       call_main_members(client, caller)
-
-      # Pause for repeated intervals waiting for others to join
-      i = 0
-      while (i < 5)
-        sleep(3)
-        if active_conferences.size > 0
-          i = 100
-          get_start_conference_xml
-        else
-          i = i + 1
-        end
-      end
-
-      if i < 100
-        get_try_again_xml
-      end
+      pause(10)
+      get_start_conference_xml
 
     else
       conference_sid = active_conferences.first.sid
