@@ -25,10 +25,11 @@ class App < Sinatra::Base
     if active_conferences.size == 0
       call_main_members(client, caller)
 
-      # Pause for 4 5-second intervals waiting for others to join
+      # Pause for repeated intervals waiting for others to join
       i = 0
       while (i < 4)
-        sleep(5)
+        puts "i " + i.as_s
+        sleep(3)
         if active_conferences.size > 0
           i = 100
           get_start_conference_xml
@@ -38,6 +39,7 @@ class App < Sinatra::Base
       end
 
       if i < 100
+        puts "try again"
         get_try_again_xml
       end
 
