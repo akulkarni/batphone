@@ -24,6 +24,9 @@ class App < Sinatra::Base
 
     if active_conferences.size == 0
       call_main_members(client, caller)
+
+      sleep(10)
+
       get_start_conference_xml
 
     else
