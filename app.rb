@@ -114,6 +114,7 @@ class App < Sinatra::Base
         client.calls.create(
           from: get_main_number,
           to: phone_number,
+          timeout: 4,
           url: get_host +  '/start_conference'
         )
       end
